@@ -19,7 +19,7 @@ import static org.testng.Assert.assertEquals;
 public class DeleteListingsTests extends TestBase {
 
 //    We use this variable to store the created Listing ID in precondition
-//    and use it in UpdateListingTest
+//    and use it in DeleteListingTest()
     private static Integer savedListingId;
 
 //    We use this precondition, for ensuring, that the Listing is created,

@@ -1,6 +1,5 @@
 package com.helpix.tests.restassured.listings;
 
-
 import com.helpix.dto.listings.ImageDto;
 import com.helpix.dto.listings.ListingResponseDto;
 import com.helpix.dto.listings.ListingsRequestDto;
@@ -18,15 +17,15 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.testng.Assert.assertEquals;
 
-public class GetListingsByIdTests extends TestBase {
+public class DeactivateListingTests extends TestBase {
 
 //    We use this variable to store the created Listing ID in precondition
-//    and use it in GetListingByIdTest()
+//    and use it in DeactivateListingTest()
     private static Integer savedListingId;
 
 //    We use this precondition, for ensuring, that the Listing is created,
-//    before get it,
-//    We must at first create the Listing and then we can get it
+//    before deactivate it,
+//    We must at first create the Listing and then we can deactivate it
     @BeforeMethod
     public void precondition() {
         List<TranslationDto> translations = Arrays.asList(
@@ -84,24 +83,22 @@ public class GetListingsByIdTests extends TestBase {
 
     }
 
-    //    Test for getting an already created listing using its ID.
+
     @Test
-    public void GetListingByIdTest() {
+    public void DeactivateListingTest(){
         ListingResponseDto responseDto = given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer " + getSavedLocalAccessToken())
                 .when()
-                .get("/listings/" + savedListingId)
+                .patch("/listings/" + savedListingId+ "/deactivate")
                 .then()
                 .statusCode(200)
                 .body("id", notNullValue())
                 .extract()
                 .as(ListingResponseDto.class);
 
-        System.out.println(responseDto );
-        Assert.assertEquals(responseDto.getAuthor().getUsername(), "Bob Carter", "Username does not match!");
 
+        Assert.assertFalse(responseDto.isActive(),  "The Listing is not deactivated!");
 
     }
-
 }
