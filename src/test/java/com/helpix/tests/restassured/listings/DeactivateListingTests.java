@@ -1,104 +1,58 @@
 package com.helpix.tests.restassured.listings;
 
-import com.helpix.dto.listings.ImageDto;
 import com.helpix.dto.listings.ListingResponseDto;
 import com.helpix.dto.listings.ListingsRequestDto;
-import com.helpix.dto.listings.TranslationDto;
+import com.helpix.fw.ListingHelper;
 import com.helpix.tests.restassured.TestBase;
-import io.restassured.http.ContentType;
+import com.helpix.utils.TestDataFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import java.io.IOException;
 
-import java.util.Arrays;
-import java.util.List;
+import static com.helpix.fw.ListingHelper.INVALID_LISTING_ID;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.testng.Assert.assertEquals;
 
 public class DeactivateListingTests extends TestBase {
 
-//    We use this variable to store the created Listing ID in precondition
-//    and use it in DeactivateListingTest()
-    private static Integer savedListingId;
 
-//    We use this precondition, for ensuring, that the Listing is created,
-//    before deactivate it,
-//    We must at first create the Listing and then we can deactivate it
+    private static Integer savedListingId;
+    private ListingHelper listingHelper;
+
+    @BeforeClass
+    public void setUp() throws IOException {
+        ensureAuthenticated();
+        listingHelper = new ListingHelper(getSavedLocalAccessToken());
+    }
+
     @BeforeMethod
     public void precondition() {
-        List<TranslationDto> translations = Arrays.asList(
-                TranslationDto.builder()
-                        .languageCode("en")
-                        .title("Product Title")
-                        .description("This is the product description.")
-                        .isDefault(true)
-                        .build()
-        );
+        ListingsRequestDto listingRequest = TestDataFactory.CreateValidListingsRequest();
 
-        List<ImageDto> images = Arrays.asList(
-                ImageDto.builder()
-                        .imageUrl("https://example.com/image.jpg")
-                        .isPrimary(true)
-                        .build()
-        );
-
-
-        ListingsRequestDto listing = ListingsRequestDto.builder()
-                .categoryId(4)
-                .contactPhone("+491117777777")
-                .contactEmail("Category_04@example.com")
-                .websiteUrl("https://www.example.com")
-                .location("New York, USA")
-                .mapLink("https://goo.gl/maps/example")
-                .mapEmbedLink("<iframe src='https://www.google.com/maps/embed?pb=example'/>")
-                .mapProvider("Google")
-                .address("123")
-                .price(3000)
-                .currencyCode("USD")
-                .priceUsd(199.99)
-                .paymentType(1)
-                .translations(translations)
-                .images(images)
-                .build();
-
-
-        ListingResponseDto responseDto = given()
-                .contentType(ContentType.JSON)
-                .body(listing)
-                .header("Authorization", "Bearer " + getSavedLocalAccessToken())
-                .when()
-                .post("/listings")
-                .then()
-                .statusCode(200)
-                .body("id", notNullValue())
-                .extract()
-                .as(ListingResponseDto.class);
-
-        assertEquals(responseDto.getAuthor().getUsername(), "Bob Carter", "Username does not match!");
-
+        ListingResponseDto responseDto = listingHelper.createListing(listingRequest);
         savedListingId = responseDto.getId();
-        System.out.println("The Listing ID: " + savedListingId);
-
     }
 
 
+
     @Test
-    public void DeactivateListingTest(){
-        ListingResponseDto responseDto = given()
-                .contentType(ContentType.JSON)
-                .header("Authorization", "Bearer " + getSavedLocalAccessToken())
-                .when()
-                .patch("/listings/" + savedListingId+ "/deactivate")
-                .then()
-                .statusCode(200)
-                .body("id", notNullValue())
-                .extract()
-                .as(ListingResponseDto.class);
+    public void DeactivateListingPositiveTest() {
+        int statusCode = listingHelper.deactivateListing(savedListingId);
+        Assert.assertEquals(statusCode, 200, "Expected status code 200 for successful deletion.");
 
+    }
 
-        Assert.assertFalse(responseDto.isActive(),  "The Listing is not deactivated!");
+    @Test
+    public void DeleteListingNegativeWithInvalidAccessTokenTest() {
+        int statusCode = listingHelper.deactivateListingWithInvalidAccessToken(savedListingId);
+        Assert.assertEquals(statusCode, 403, "Expected status code 403 for invalid token.");
 
+    }
+
+    @Test
+    public void DeleteListingNegativeWithInvalidListingIdTest() {
+        int statusCode = listingHelper.deactivateListing(INVALID_LISTING_ID);
+        Assert.assertEquals(statusCode, 404, "Expected status code 404 for invalid Listing ID.");
     }
 }

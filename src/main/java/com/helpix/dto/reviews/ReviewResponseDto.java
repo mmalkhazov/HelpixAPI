@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ReviewResponseDto {
     private AuthorDto author;
-    public int id;
-    public int rating;
-    public String comment;
+    private int id;
+    private int rating;
+    private String comment;
 }

@@ -15,9 +15,9 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-import static com.helpix.fw.ReviewHelper.INVALID_REVIEW_ID;
+import static com.helpix.fw.ListingHelper.INVALID_LISTING_ID;
 
-public class DeleteReviewTests extends TestBase {
+public class GetReviewsByListingIdTests extends TestBase {
     private static Integer savedListingId;
     private static Integer savedReviewId;
 
@@ -44,25 +44,21 @@ public class DeleteReviewTests extends TestBase {
 
     }
 
+    @Test
+    public void GetReviewByListingIdWithoutAccessTokenPositiveTest() {
+        int statusCode = reviewHelper.getReviewByListingIdWithInvalidAccessToken(savedListingId);
+        Assert.assertEquals(statusCode, 200, "Expected status code 200 for successful deletion.");
+
+    }
 
     @Test
-    public void DeleteReviewPositiveTest() {
-        int statusCode = reviewHelper.deleteReview(savedReviewId);
+    public void GetReviewByListingIdNegativeWithInvalidListingIdTest() {
+        int statusCode = reviewHelper.getReviewByListingId(INVALID_LISTING_ID);
         Assert.assertEquals(statusCode, 200, "Expected status code 200 for successful deletion.");
 
     }
 
 
-    @Test
-    public void DeleteReviewNegativeWithInvalidAccessTokenTest() {
-        int statusCode = reviewHelper.deleteReviewWithInvalidAccessToken(savedReviewId);
-        Assert.assertEquals(statusCode, 403, "Expected status code 403 for successful deletion.");
 
-    }
-    @Test
-    public void DeleteReviewNegativeWithInvalidReviewIdTest() {
-        int statusCode = reviewHelper.deleteReview(INVALID_REVIEW_ID);
-        Assert.assertEquals(statusCode, 404, "Expected status code 404 for successful deletion.");
 
-    }
 }
